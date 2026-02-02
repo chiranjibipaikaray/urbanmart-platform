@@ -1,4 +1,5 @@
-# UrbanMart
+# UrbanMart🛍️
+
 
 UrbanMart is a production-grade, secure, multi-category e-commerce platform designed using modern cloud-native and DevSecOps principles.
 
