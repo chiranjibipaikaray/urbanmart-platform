@@ -3,6 +3,7 @@ name: UrbanMart Backend CI
 on:
   push:
     branches:
+      - develop
       - main
     paths:
       - "backend/**"
