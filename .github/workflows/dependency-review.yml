@@ -17,8 +17,6 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@v4
         with:
-          fail-on-severity: high
-          allow-licenses: |
-            MIT
-            ISC
-            Apache-2.0
+            fail-on-severity: high
+            allow-licenses: MIT,ISC,Apache-2.0
+

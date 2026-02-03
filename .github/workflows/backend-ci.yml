@@ -30,7 +30,8 @@ jobs:
 
       - name: Build Docker image
         working-directory: backend
-        run: docker build -t urbanmart-backend:pr .
+        run: docker build -t urbanmart-backend:pr -t urbanmart-backend:latest .
+
 
       - name: Trivy image scan
         uses: aquasecurity/trivy-action@master
