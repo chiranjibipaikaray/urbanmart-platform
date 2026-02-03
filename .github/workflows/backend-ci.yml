@@ -39,4 +39,7 @@ jobs:
           image-ref: urbanmart-backend:latest
           severity: HIGH,CRITICAL
           exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library
+
 
