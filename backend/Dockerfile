@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM node:20.17.0-slim
 
 # Patch OS certs (good hygiene)
 RUN apt-get update \
