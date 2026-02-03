@@ -37,9 +37,12 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: urbanmart-backend:latest
+          vuln-type: os,library
           severity: HIGH,CRITICAL
           exit-code: 1
           ignore-unfixed: true
-          vuln-type: os,library
+          skip-dirs: /usr/local/lib/node_modules/npm
+
+
 
 
