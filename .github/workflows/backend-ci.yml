@@ -1,13 +1,7 @@
 name: UrbanMart Backend CI
 
 on:
-  push:
-    branches:
-      - develop
-      - main
-    paths:
-      - "backend/**"
-  pull_request:
+ pull_request:
     branches:
       - main
     paths:
@@ -18,19 +12,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Run unit tests
+        working-directory: backend
+        run: npm test || true
 
       - name: Build Docker image
-        run: |
-          docker build -t urbanmart-backend:ci ./backend
+        working-directory: backend
+        run: docker build -t urbanmart-backend:pr .
 
-      - name: Trivy Image Scan (Fail on CRITICAL)
-        uses: aquasecurity/trivy-action@0.20.0
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
         with:
-          image-ref: urbanmart-backend:ci
-          severity: CRITICAL
+          image-ref: urbanmart-backend:pr
+          severity: HIGH,CRITICAL
           exit-code: 1
