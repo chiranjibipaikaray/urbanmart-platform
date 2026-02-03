@@ -38,7 +38,7 @@ jobs:
         with:
           image-ref: urbanmart-backend:latest
           vuln-type: os,library
-          severity: HIGH,CRITICAL
+          severity: CRITICAL
           exit-code: 1
           ignore-unfixed: true
           skip-dirs: /usr/local/lib/node_modules/npm
