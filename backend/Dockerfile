@@ -1,14 +1,19 @@
-FROM node:20-alpine
+FROM node:18.20.2-slim
 
 WORKDIR /app
 
-# OS security patches
-RUN apk update && apk upgrade --no-cache
+# Update OS packages
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
 
+# Copy only dependency files first
 COPY package*.json ./
-RUN npm install --only=production
 
+# Install dependencies (no dev deps in prod image)
+RUN npm ci --omit=dev
+
+# Copy app code
 COPY . .
 
 EXPOSE 3000
-CMD ["npm", "start"]
+
+CMD ["node", "index.js"]
