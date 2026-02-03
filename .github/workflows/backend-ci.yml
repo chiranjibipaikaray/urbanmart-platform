@@ -32,9 +32,10 @@ jobs:
         working-directory: backend
         run: docker build -t urbanmart-backend:pr .
 
-      - name: Scan image with Trivy
+      - name: Trivy image scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: urbanmart-backend:pr
+          image-ref: urbanmart-backend:latest
           severity: HIGH,CRITICAL
           exit-code: 1
+
