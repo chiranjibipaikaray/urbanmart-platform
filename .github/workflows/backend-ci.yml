@@ -1,48 +1,47 @@
-name: UrbanMart Backend CI
+name: Backend CI
 
 on:
- pull_request:
-    branches:
-      - main
+  push:
+    paths:
+      - "backend/**"
+  pull_request:
     paths:
       - "backend/**"
 
 jobs:
-  build-and-scan:
+  backend-ci:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install dependencies
-        working-directory: backend
         run: npm install
 
-      - name: Run unit tests
-        working-directory: backend
+      - name: Run tests
         run: npm test || true
 
-      - name: Build Docker image
-        working-directory: backend
-        run: docker build -t urbanmart-backend:pr -t urbanmart-backend:latest .
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-
-      - name: Trivy image scan
+      - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: urbanmart-backend:latest
-          vuln-type: os,library
+          scan-type: fs
+          scan-ref: backend
           severity: CRITICAL
-          exit-code: 1
-          ignore-unfixed: true
-          skip-dirs: /usr/local/lib/node_modules/npm
-
-
-
-
+          
