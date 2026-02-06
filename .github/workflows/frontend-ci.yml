@@ -47,7 +47,7 @@ jobs:
 
       # 6️⃣ Trivy image scan
       - name: Trivy image scan
-        uses: aquasecurity/trivy-action@v0.11.4
+        uses: aquasecurity/trivy-action@41f05d9ecffa2ed3f1580af306000f734b733e54
         with:
           image-ref: urbanmart-frontend:ci
           vuln-type: os,library
