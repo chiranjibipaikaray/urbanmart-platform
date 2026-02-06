@@ -20,3 +20,4 @@ jobs:
             fail-on-severity: high
             allow-licenses: MIT,ISC,Apache-2.0,LGPL-3.0
 
+

@@ -1,0 +1,17 @@
+# dependencies
+node_modules
+
+# env
+.env
+
+# git
+.git
+.gitignore
+
+# logs
+npm-debug.log
+yarn-error.log
+
+# docker
+Dockerfile
+.dockerignore
