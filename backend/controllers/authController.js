@@ -2,20 +2,42 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+// ==============================
+// Helper: Input validation
+// ==============================
+const isValidString = (value) =>
+  typeof value === "string" && value.trim().length > 0;
+
+// ==============================
 // REGISTER
+// ==============================
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    let { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields required" });
+    // ✅ Strict type validation (Sonar fix)
+    if (
+      !isValidString(name) ||
+      !isValidString(email) ||
+      !isValidString(password)
+    ) {
+      return res.status(400).json({ message: "Invalid input format" });
     }
 
-    const existingUser = await User.findOne({ email });
+    // ✅ Normalize inputs
+    name = name.trim();
+    email = email.trim().toLowerCase();
+
+    // ✅ Safe DB query (no direct user object injection)
+    const existingUser = await User.findOne({
+      email: email,
+    }).lean();
+
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // ✅ Strong hashing
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -24,7 +46,7 @@ exports.register = async (req, res) => {
       password: hashedPassword,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully",
       user: {
         id: user._id,
@@ -34,21 +56,31 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error("REGISTER ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
+// ==============================
 // LOGIN
+// ==============================
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email & password required" });
+    // ✅ Strict validation
+    if (!isValidString(email) || !isValidString(password)) {
+      return res.status(400).json({ message: "Invalid input format" });
     }
 
-    const user = await User.findOne({ email });
+    email = email.trim().toLowerCase();
+
+    // ✅ Safe DB query
+    const user = await User.findOne({
+      email: email,
+    });
+
     if (!user) {
+      // 🔐 Generic message (avoid user enumeration)
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -57,13 +89,20 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // ✅ Hardened JWT
     const token = jwt.sign(
-      { userId: user._id },
+      {
+        userId: user._id.toString(),
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      {
+        expiresIn: "1d",
+        issuer: "urbanmart",
+        audience: "urbanmart-users",
+      }
     );
 
-    res.json({
+    return res.json({
       message: "Login successful",
       token,
       user: {
@@ -74,6 +113,6 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error("LOGIN ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
