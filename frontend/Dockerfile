@@ -1,5 +1,5 @@
 ############################
-# 1️⃣ Build Stage
+# 1️⃣ Build stage
 ############################
 FROM node:20-alpine AS builder
 
@@ -13,30 +13,33 @@ RUN npm run build
 
 
 ############################
-# 2️⃣ Production Stage
+# 2️⃣ Runtime stage
 ############################
 FROM nginx:1.27-alpine
 
 # Remove default config
 RUN rm /etc/nginx/conf.d/default.conf
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy built frontend
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# 🔐 Create non-root user
+# Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# 🔐 Fix permissions
-RUN chown -R appuser:appgroup /usr/share/nginx/html \
-    && chown -R appuser:appgroup /var/cache/nginx \
-    && chown -R appuser:appgroup /var/run
+# Prepare runtime dirs (CRITICAL FIX)
+RUN mkdir -p /run/nginx \
+ && chown -R appuser:appgroup /run /var/cache/nginx
 
-# 🔐 Switch to non-root
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy build output
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Fix permissions
+RUN chown -R appuser:appgroup \
+    /usr/share/nginx/html \
+    /etc/nginx
+
+# Drop privileges
 USER appuser
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
