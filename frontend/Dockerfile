@@ -4,7 +4,6 @@
 FROM node:20-alpine AS builder
 
 WORKDIR /app
-
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -17,29 +16,33 @@ RUN npm run build
 ############################
 FROM nginx:1.27-alpine
 
-# Remove default config
-RUN rm /etc/nginx/conf.d/default.conf
+# Patch OS
+RUN apk update && apk upgrade --no-cache
+
+# Remove default nginx configs
+RUN rm /etc/nginx/conf.d/default.conf \
+ && rm /etc/nginx/nginx.conf
 
 # Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Prepare runtime dirs (CRITICAL FIX)
-RUN mkdir -p /run/nginx \
- && chown -R appuser:appgroup /run /var/cache/nginx
+# Prepare runtime dirs
+RUN mkdir -p /var/cache/nginx /tmp \
+ && chown -R appuser:appgroup /var/cache/nginx /tmp
 
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy build output
+# Copy frontend build
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Fix permissions
+# Permissions
 RUN chown -R appuser:appgroup \
     /usr/share/nginx/html \
     /etc/nginx
 
-# Drop privileges
 USER appuser
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+
+CMD ["nginx", "-g", "daemon off; pid /tmp/nginx.pid;"]
