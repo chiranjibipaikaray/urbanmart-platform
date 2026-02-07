@@ -2,46 +2,51 @@ name: Backend CI
 
 on:
   push:
+    branches: [ "develop" ]
     paths:
       - "backend/**"
   pull_request:
-    paths:
-      - "backend/**"
+    branches: [ "main" ]
 
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install
+        working-directory: backend
+        run: npm ci
 
       - name: Run tests
-        run: npm test || true
+        working-directory: backend
+        run: npm test
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        with:
-          projectBaseDir: backend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Docker login to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
 
-      - name: Trivy filesystem scan
+      - name: Build backend image
+        run: |
+          docker build -t ghcr.io/${{ secrets.GHCR_USERNAME }}/urbanmart-backend:latest backend
+
+      - name: Push backend image
+        run: |
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/urbanmart-backend:latest
+
+      - name: Trivy image scan
         uses: aquasecurity/trivy-action@master
         with:
-          scan-type: fs
-          scan-ref: backend
+          image-ref: ghcr.io/${{ secrets.GHCR_USERNAME }}/urbanmart-backend:latest
           severity: CRITICAL
-          
+          exit-code: 1
