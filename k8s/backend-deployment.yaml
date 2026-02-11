@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: urbanmart-backend
+  namespace: urbanmart-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: urbanmart-backend
+  template:
+    metadata:
+      labels:
+        app: urbanmart-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/chiranjibipaikaray/urbanmart-backend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: JWT_SECRET
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+

@@ -20,7 +20,9 @@ COPY . .
 FROM node:20-alpine
 
 # Create non-root user
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Create non-root user with FIXED numeric UID
+RUN addgroup -g 10001 appgroup \
+ && adduser -D -u 10001 -G appgroup appuser
 
 WORKDIR /app
 
@@ -28,10 +30,10 @@ WORKDIR /app
 COPY --from=builder /app /app
 
 # Set permissions
-RUN chown -R appuser:appgroup /app
+RUN chown -R 10001:10001 /app
 
 # Switch to non-root user
-USER appuser
+USER 10001
 
 # Expose port
 EXPOSE 3000
