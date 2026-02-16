@@ -1,0 +1,21 @@
+# k8s/backend-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: urbanmart-backend-ingress
+  namespace: urbanmart-dev
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: api.urbanmart.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: urbanmart-backend
+                port:
+                  number: 80
